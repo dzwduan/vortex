@@ -200,10 +200,17 @@ void Core::schedule() {
     return;
   }
 
+    // track active threads
+    perf_stats_.total_issued_warps += 1;
+    // tmask是一个OneHot的bitset，表示当前warp中活跃的线程，count()表示活跃线程的数量
+    perf_stats_.total_active_threads += trace->tmask.count();
+
   // suspend warp until decode
   emulator_.suspend(trace->wid);
 
   DT(3, "pipeline-schedule: " << *trace);
+
+
 
   // advance to fetch stage
   fetch_latch_.push(trace);
@@ -393,7 +400,7 @@ void Core::commit() {
       }
 
       --pending_instrs_;
-
+      // tmask
       perf_stats_.instrs += trace->tmask.count();
     }
 

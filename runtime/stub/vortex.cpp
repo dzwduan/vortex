@@ -162,6 +162,7 @@ extern int vx_dcr_write(vx_device_h hdevice, uint32_t addr, uint32_t value) {
 }
 
 extern int vx_mpm_query(vx_device_h hdevice, uint32_t addr, uint32_t core_id, uint64_t* value) {
+  // 获取要查询的配置的总量
   if (core_id == 0xffffffff) {
     uint64_t num_cores;
     CHECK_ERR((g_callbacks.dev_caps)(hdevice, VX_CAPS_NUM_CORES, &num_cores), {
@@ -178,6 +179,7 @@ extern int vx_mpm_query(vx_device_h hdevice, uint32_t addr, uint32_t core_id, ui
     *value = sum_value;
     return 0;
   } else {
+    // 获取单核的配置
     return (g_callbacks.mpm_query)(hdevice, addr, core_id, value);
   }
 }
