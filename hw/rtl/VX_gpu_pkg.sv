@@ -93,6 +93,10 @@ package VX_gpu_pkg;
     typedef struct packed {
         logic [`PERF_CTR_BITS-1:0] idles;
         logic [`PERF_CTR_BITS-1:0] stalls;
+
+        // add more here if needed
+        logic [`PERF_CTR_BITS-1:0] total_issued_warps;
+        logic [`PERF_CTR_BITS-1:0] total_active_threads;
     } sched_perf_t;
 
     typedef struct packed {

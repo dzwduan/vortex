@@ -11,10 +11,8 @@ int __attribute__((noinline)) check_error(const int* buffer, int offset, int siz
 	for (int i = offset; i < size; i++)	{
 		int value = buffer[i];
 		int ref_value = 65 + i;
-		if (value == ref_value)	{
-			//PRINTF("[%d] %c\n", i, value);
-		} else {
-			PRINTF("*** error: [%d] 0x%x, expected 0x%x\n", i, value, ref_value);
+		if (value != ref_value)	{
+			PRINTF(ANSI_COLOR_RED "error: [%d] 0x%x, expected 0x%x" ANSI_COLOR_GREEN "\n", i, value, ref_value);
 			++errors;
 		}
 	}
@@ -34,6 +32,7 @@ int __attribute__((noinline)) make_full_tmask(int num_threads) {
 #define GLOBAL_MEM_SZ 8
 int global_buffer[GLOBAL_MEM_SZ];
 
+// 理解为分配在全局内存上的，自己申请一个空间就行
 int test_global_memory() {
 	PRINTF("Global Memory Test\n");
 
@@ -46,15 +45,18 @@ int test_global_memory() {
 
 ///////////////////////////////////////////////////////////////////////////////
 
+// volatile 代表禁用优化 ，lmem_addr绑定了硬件的base_addr ，我关了没啥事
 volatile int* lmem_addr = (int*)LMEM_BASE_ADDR;
 
 int lmem_buffer[8];
 
+// noinline 禁用内联优化
 void __attribute__((noinline)) do_lmem_wr() {
 	unsigned tid = vx_thread_id();
+	// 下面三行貌似是测试RAW , 删了两行也没事
 	lmem_addr[tid] = 65 + tid;
-	int x = lmem_addr[tid];
-	lmem_addr[tid] = x;
+	// int x = lmem_addr[tid];
+	// lmem_addr[tid] = x;
 }
 
 void __attribute__((noinline)) do_lmem_rd() {
@@ -67,9 +69,11 @@ int test_local_memory() {
 
 	int num_threads = std::min(vx_num_threads(), 8);
 	int tmask = make_full_tmask(num_threads);
+	// 启用所有线程
 	vx_tmc(tmask);
 	do_lmem_wr();
 	do_lmem_rd();
+	// 切换到从thread 0 开始执行
 	vx_tmc_one();
 
 	return check_error(lmem_buffer, 0, num_threads);
@@ -84,13 +88,16 @@ void __attribute__((noinline)) do_tmc() {
 	tmc_buffer[tid] = 65 + tid;
 }
 
-int test_tmc() {
+int  test_tmc() {
 	PRINTF("TMC Test\n");
 
 	int num_threads = std::min(vx_num_threads(), 8);
 	int tmask = make_full_tmask(num_threads);
+	// set thread mask
 	vx_tmc(tmask);
+	// 根据 thread mask 写入 tmc_buffer
 	do_tmc();
+	// 执行，执行会根据tmc mask来决定执行哪些线程？这个怎么看代码体现?
 	vx_tmc_one();
 
 	return check_error(tmc_buffer, 0, num_threads);
@@ -131,12 +138,16 @@ void wspawn_kernel() {
 	wspawn_buffer[wid] = 65 + wid;
 	vx_tmc(0 == wid);
 }
-
+// 以warp为粒度，是先vx_wspawn，然后执行wspawn_kernel
 int test_wsapwn() {
 	PRINTF("Wspawn Test\n");
 	int num_warps = std::min(vx_num_warps(), 8);
+	// 多少个 warp执行wspawn_kernel
 	vx_wspawn(num_warps, wspawn_kernel);
+	
 	wspawn_kernel();
+
+	//TODO: 这里没有tmc_one?
 
 	return check_error(wspawn_buffer, 0, num_warps);
 }
@@ -145,6 +156,7 @@ int test_wsapwn() {
 
 int dvg_buffer[4];
 
+//每次遇到条件分支，都需要加上vx_split和vx_join
 void __attribute__((noinline)) __attribute__((optimize("O1"))) do_divergence() {
 	int tid = vx_thread_id();
 	int cond1 = tid < 2;
@@ -154,9 +166,9 @@ void __attribute__((noinline)) __attribute__((optimize("O1"))) do_divergence() {
 			int cond2 = tid < 1;
 			int sp2 = vx_split(cond2);
 			if (cond2) {
-				dvg_buffer[tid] = 65; // A
+				dvg_buffer[tid] = 65; // A thread 0
 			} else {
-				dvg_buffer[tid] = 66; // B
+				dvg_buffer[tid] = 66; // B thread 1
 			}
 			vx_join(sp2);
 		}
@@ -164,7 +176,7 @@ void __attribute__((noinline)) __attribute__((optimize("O1"))) do_divergence() {
 			int cond3 = tid < 0;
 			int sp3 = vx_split(cond3);
 			if (cond3) {
-				dvg_buffer[tid] = 67; // C
+				dvg_buffer[tid] = 67; // C thread 2
 			}
 			vx_join(sp3);
 		}
@@ -173,13 +185,14 @@ void __attribute__((noinline)) __attribute__((optimize("O1"))) do_divergence() {
 			int cond2 = tid < 3;
 			int sp2 = vx_split(cond2);
 			if (cond2) {
-				dvg_buffer[tid] = 67; // C
+				dvg_buffer[tid] = 67; // C thread 3
 			} else {
-				dvg_buffer[tid] = 68; // D
+				dvg_buffer[tid] = 68; // D thread 4
 			}
 			vx_join(sp2);
 		}
 	}
+	// 重聚点
 	vx_join(sp1);
 }
 
@@ -221,7 +234,7 @@ int test_spawn_tasks() {
 		st_buffer_src[i] = 65 + i;
 	}
 
-	uint32_t num_tasks(ST_BUF_SZ);
+	uint32_t num_tasks = ST_BUF_SZ;
 	vx_spawn_threads(1, &num_tasks, nullptr, (vx_kernel_func_cb)st_kernel, &arg);
 
 	return check_error(st_buffer_dst, 0, ST_BUF_SZ);
@@ -243,6 +256,8 @@ void sr_kernel(const sr_args_t * arg) {
 void __attribute__((noinline)) do_serial() {
 	sr_args_t arg;
 	arg.buf = sr_buffer;
+	// vx_serial按照线程id串行执行给定的callback
+	// 注意最后仍然要调用vx_tmc_one来进行真正的执行操作
 	vx_serial((vx_serial_cb)sr_kernel, &arg);
 }
 
@@ -284,6 +299,7 @@ l_start:
 	tid = do_tmask();
 	if (tid < num_threads)
 		goto l_start;
+
 	vx_tmc_one();
 
 	return check_error(tmask_buffer, 0, num_threads);
@@ -302,7 +318,8 @@ void barrier_kernel() {
 	}
 	barrier_buffer[wid] = 65 + wid;
 	vx_barrier(0, barrier_ctr);
-	vx_tmc(0 == wid);
+	// vx_printf("wid = %d\n", wid);
+	vx_tmc(0 == wid);  // 只处理第0个
 }
 
 int test_barrier() {
@@ -310,8 +327,11 @@ int test_barrier() {
 	int num_warps = std::min(vx_num_warps(), 8);
 	barrier_ctr = num_warps;
 	barrier_stall = 0;
+	// vx_wspawn + callback_func 需要配合使用
 	vx_wspawn(num_warps, barrier_kernel);
 	barrier_kernel();
+
+
 	return check_error(barrier_buffer, 0, num_warps);
 }
 

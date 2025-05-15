@@ -12,9 +12,9 @@ int main() {
 
 	errors += test_pred();
 
-	errors += test_divergence();
-
 	errors += test_wsapwn();
+
+	errors += test_divergence();
 
 	errors += test_spawn_tasks();
 
@@ -26,11 +26,10 @@ int main() {
 
 	errors += test_tls();
 
-	if (0 == errors) {	
-		PRINTF("Passed!\n");
-	} else {
-		PRINTF("Failed!\n");
-	}
-	
+    if (0 == errors) {
+        PRINTF(ANSI_COLOR_GREEN "Passed!\n" ANSI_COLOR_RESET);
+    } else {
+        PRINTF(ANSI_COLOR_RED "Failed!\n" ANSI_COLOR_RESET);
+    }
 	return errors;
 }

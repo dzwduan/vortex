@@ -565,17 +565,17 @@ extern int vx_dump_perf(vx_device_h hdevice, FILE* stream) {
 
       CHECK_ERR(vx_dev_caps(hdevice, VX_CAPS_NUM_THREADS, &threads_per_warp), {return err;});
 
-      uint64_t total_issued_warps_per_core;
+      uint64_t total_issued_warps_per_core = 0;
       // VX_CSR_MPM_TOCAL_ISSUED_WARPS 在 emulator.cpp注册，用于从硬件读取perf_counter
       CHECK_ERR(vx_mpm_query(hdevice, VX_CSR_MPM_TOTAL_ISSUED_WARPS, core_id, &total_issued_warps_per_core), {return err;});
 
-      uint64_t total_active_threads_per_core;
+      uint64_t total_active_threads_per_core = 0;
       CHECK_ERR(vx_mpm_query(hdevice, VX_CSR_MPM_TOTAL_ACTIVE_THREADS, core_id, &total_active_threads_per_core), {return err;});
 
       // 打印每个核的efficiency
       if (num_cores > 1) {
         int warp_efficiency = calcAvgPercent(total_active_threads_per_core, total_issued_warps_per_core * threads_per_warp);
-        fprintf(stream, "PERF: core%d : Warp Efficiency=%d%%\n", core_id, warp_efficiency);
+        fprintf(stream, "PERF: core%d : active_threads = %ld, warps_per_core = %ld, threads_per_warp = %ld, Warp Efficiency=%d%%\n", core_id, total_active_threads_per_core, total_issued_warps_per_core , threads_per_warp, warp_efficiency);
       }
 
       total_issued_warps += total_issued_warps_per_core;
@@ -592,7 +592,6 @@ extern int vx_dump_perf(vx_device_h hdevice, FILE* stream) {
     max_cycles = std::max<uint64_t>(cycles_per_core, max_cycles);
   }
 
-  // 
   switch (perf_class) {
   case VX_DCR_MPM_CLASS_CORE: {
     int sched_idles_percent = calcAvgPercent(sched_idles, total_cycles);

@@ -30,7 +30,7 @@ LLVM_CFLAGS += -mllvm -disable-loop-idiom-all # disable memset/memcpy loop idiom
 
 VX_CC  = $(LLVM_VORTEX)/bin/clang $(LLVM_CFLAGS)
 VX_CXX = $(LLVM_VORTEX)/bin/clang++ $(LLVM_CFLAGS)
-VX_DP  = $(LLVM_VORTEX)/bin/llvm-objdump
+VX_DP  = $(LLVM_VORTEX)/bin/llvm-objdumpF
 VX_CP  = $(LLVM_VORTEX)/bin/llvm-objcopy
 
 #VX_CC  = $(RISCV_TOOLCHAIN_PATH)/bin/$(RISCV_PREFIX)-gcc
