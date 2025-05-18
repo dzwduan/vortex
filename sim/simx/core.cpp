@@ -205,10 +205,12 @@ void Core::schedule() {
 
   DT(3, "pipeline-schedule: " << *trace);
 
-    // track active threads
+  // track active threads
   perf_stats_.total_issued_warps += 1;
-    // tmask是一个OneHot的bitset，表示当前warp中活跃的线程，count()表示活跃线程的数量
+  // tmask是一个OneHot的bitset，表示当前warp中活跃的线程，count()表示活跃线程的数量
   perf_stats_.total_active_threads += trace->tmask.count();
+
+  //DT(0, "[Core] Total Issued Warps = " << perf_stats_.total_issued_warps << "Total Active Threads = " << perf_stats_.total_active_threads);
 
   // advance to fetch stage
   fetch_latch_.push(trace);

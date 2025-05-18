@@ -481,6 +481,7 @@ uint8_t *RAM::get(uint64_t address) const {
 void RAM::read(void* data, uint64_t addr, uint64_t size) {
   // printf("====%s (addr= 0x%lx, size= 0x%lx) ====\n", __PRETTY_FUNCTION__,addr,size);
   if (check_acl_ && acl_mngr_.check(addr, size, 0x1) == false) {
+    std::cout << "RAM Read ERROR @ " << std::hex << addr << std::endl;
     throw BadAddress();
   }
   uint8_t* d = (uint8_t*)data;
@@ -491,6 +492,7 @@ void RAM::read(void* data, uint64_t addr, uint64_t size) {
 
 void RAM::write(const void* data, uint64_t addr, uint64_t size) {
   if (check_acl_ && acl_mngr_.check(addr, size, 0x2) == false) {
+    std::cout << "RAM Write ERROR @ " << std::hex << addr << std::endl;
     throw BadAddress();
   }
   const uint8_t* d = (const uint8_t*)data;

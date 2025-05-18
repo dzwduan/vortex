@@ -20,6 +20,7 @@
 #include <dlfcn.h>
 #include <iostream>
 
+
 int get_profiling_mode();
 
 static int dcr_initialize(vx_device_h hdevice) {
@@ -180,6 +181,8 @@ extern int vx_mpm_query(vx_device_h hdevice, uint32_t addr, uint32_t core_id, ui
     return 0;
   } else {
     // 获取单核的配置
+    // std::cout << "[dzw_dbg]core_id: " << core_id  << "，addr = " << std::hex << addr << std::endl;
+
     return (g_callbacks.mpm_query)(hdevice, addr, core_id, value);
   }
 }

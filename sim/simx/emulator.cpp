@@ -610,6 +610,9 @@ Word Emulator::get_csr(uint32_t addr, uint32_t tid, uint32_t wid) {
       case VX_DCR_MPM_CLASS_3 : {
         CSR_READ_64(VX_CSR_MPM_TOTAL_ISSUED_WARPS, core_perf.total_issued_warps);
         CSR_READ_64(VX_CSR_MPM_TOTAL_ACTIVE_THREADS, core_perf.total_active_threads);
+
+        std::cout << "[dzw-dbg in emulator] core_perf.total_issued_warps = " << core_perf.total_issued_warps << std::endl;
+        std::cout << "[dzw-dbg in emulator] core_perf.total_active_threads = " << core_perf.total_active_threads << std::endl;
       } break;
       default: {
         std::cout << "Error: invalid MPM CLASS: value=" << perf_class << std::endl;

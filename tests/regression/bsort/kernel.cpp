@@ -1,8 +1,6 @@
 #include <vx_spawn.h>
 #include "common.h"
 
-
-// implement parallel reduce sum for Parallel Bitonic Sort
 void kernel_body(kernel_arg_t* __UNIFORM__ arg) {
 	uint32_t num_points = arg->num_points;
 	auto src_ptr = (TYPE*)arg->src_addr;

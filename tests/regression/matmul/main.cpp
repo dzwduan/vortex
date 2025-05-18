@@ -166,7 +166,7 @@ int main(int argc, char *argv[]) {
 
   uint32_t num_tasks  = ((matrix_size*matrix_size)/(tc_size*tc_size))*threads_per_tc;
 
-  //size of each operand
+  //size of each operand . 这里和operator collector相关， 不理解 matrix_size / tc_size 是什么 ， 一次列出来一行的操作数？
   uint32_t buf_size   =  ((matrix_size*matrix_size)/(tc_size*tc_size))*(matrix_size/(tc_size))*(tc_size*tc_size)*data_size;
 
   //256
@@ -184,7 +184,7 @@ int main(int argc, char *argv[]) {
 
   std::cout << "A_addr=0x" << std::hex << kernel_arg.src0_addr << std::endl;
   std::cout << "B_addr=0x" << std::hex << kernel_arg.src1_addr << std::endl;
-  std::cout << "C_addr=0x" << std::hex << kernel_arg.dst_addr << std::endl;
+  std::cout << "C_addr=0x" << std::hex << kernel_arg.dst_addr  << std::endl;
 
   mainVariables<int> variables (buf_size, data_size, matrix_size);
   variables.init_inputs();

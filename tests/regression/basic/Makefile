@@ -9,7 +9,7 @@ SRCS := $(SRC_DIR)/main.cpp
 
 VX_SRCS := $(SRC_DIR)/kernel.cpp $(VORTEX_HOME)/kernel/src/vx_perf.c $(SRC_DIR)/start.S
 
-OPTS ?= -n256
+OPTS ?= -n32
 
 include ../common.mk
 

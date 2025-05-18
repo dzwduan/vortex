@@ -77,7 +77,9 @@ inline uint32_t shuffle(int i, uint32_t value) {
 int run_memcopy_test(const kernel_arg_t& kernel_arg) {
   uint32_t num_points = kernel_arg.count;
   uint32_t buf_size = num_points * sizeof(int32_t);
-
+  printf("#############################\n");
+  printf("num_points=%d, buf_size=%d\n", num_points, buf_size);
+  printf("#############################\n");
   std::vector<uint32_t> h_src(num_points);
   std::vector<uint32_t> h_dst(num_points);
 
@@ -102,7 +104,7 @@ int run_memcopy_test(const kernel_arg_t& kernel_arg) {
 
   // verify result
   int errors = 0;
-  std::cout << "verify result" << std::endl;
+  std::cout << "verify memcopy test result" << std::endl;
   for (uint32_t i = 0; i < num_points; ++i) {
     auto cur = h_dst[i];
     auto ref = shuffle(i, NONCE);
@@ -167,7 +169,7 @@ int run_kernel_test(const kernel_arg_t& kernel_arg) {
 
   // verify result
   int errors = 0;
-  std::cout << "verify result" << std::endl;
+  std::cout << "verify kernel test result" << std::endl;
   for (uint32_t i = 0; i < num_points; ++i) {
     auto cur = h_dst[i];
     auto ref = shuffle(i, NONCE);
@@ -215,12 +217,14 @@ int main(int argc, char *argv[]) {
 
   // allocate device memory
   std::cout << "allocate device memory" << std::endl;
+
   RT_CHECK(vx_mem_alloc(device, buf_size, VX_MEM_READ, &src_buffer));
   RT_CHECK(vx_mem_address(src_buffer, &kernel_arg.src_addr));
+  // 0x11000 分配 flag = 2 写权限
   RT_CHECK(vx_mem_alloc(device, buf_size, VX_MEM_WRITE, &dst_buffer));
   RT_CHECK(vx_mem_address(dst_buffer, &kernel_arg.dst_addr));
 
-  kernel_arg.count = num_points;
+  kernel_arg.count = count;
 
   std::cout << "dev_src=0x" << std::hex << kernel_arg.src_addr << std::endl;
   std::cout << "dev_dst=0x" << std::hex << kernel_arg.dst_addr << std::endl;
