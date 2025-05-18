@@ -199,6 +199,8 @@ void Core::schedule() {
     ++perf_stats_.sched_idle;
     return;
   }
+  perf_stats_.total_issued_warps += 1;
+perf_stats_.total_active_threads += trace->tmask.count();
 
   // suspend warp until decode
   emulator_.suspend(trace->wid);

@@ -607,6 +607,13 @@ Word Emulator::get_csr(uint32_t addr, uint32_t tid, uint32_t wid) {
         CSR_READ_64(VX_CSR_MPM_LMEM_BANK_ST, lmem_perf.bank_stalls);
         }
       } break;
+
+      case VX_DCR_MPM_CLASS_3: {
+        switch(addr) {
+  // Add your custom counters here for Class 3:
+  CSR_READ_64(VX_CSR_MPM_TOTAL_ISSUED_WARPS, core_perf.total_issued_warps);
+  CSR_READ_64(VX_CSR_MPM_TOTAL_ACTIVE_THREADS, core_perf.total_active_threads);
+      }} break;
       default: {
         std::cout << "Error: invalid MPM CLASS: value=" << perf_class << std::endl;
         std::abort();
