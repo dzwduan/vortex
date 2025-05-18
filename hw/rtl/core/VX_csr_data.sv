@@ -209,7 +209,7 @@ import VX_fpu_pkg::*;
                     read_addr_valid_w = 1;
                 `ifdef PERF_ENABLE
                     case (base_dcrs.mpm_class)
-                    `VX_DCR_MPM_CLASS_CORE: begin
+                `VX_DCR_MPM_CLASS_CORE: begin
                         case (read_addr)
                         // PERF: pipeline
                         `CSR_READ_64(`VX_CSR_MPM_SCHED_ID, read_data_ro_w, pipeline_perf.sched.idles);
@@ -273,6 +273,14 @@ import VX_fpu_pkg::*;
                         `CSR_READ_64(`VX_CSR_MPM_MEM_LT, read_data_ro_w, sysmem_perf.mem.latency);
                         // PERF: coalescer
                         `CSR_READ_64(`VX_CSR_MPM_COALESCER_MISS, read_data_ro_w, sysmem_perf.coalescer.misses);
+                        default:;
+                        endcase
+                    end
+                    `VX_DCR_MPM_CLASS_3: begin
+                        case (read_addr)
+                        // Add your custom counters here for Class 3:
+                        `CSR_READ_64(`VX_CSR_MPM_TOTAL_ISSUED_WARPS, read_data_ro_w, pipeline_perf.sched.total_issued_warps);
+                        `CSR_READ_64(`VX_CSR_MPM_TOTAL_ACTIVE_THREADS, read_data_ro_w, pipeline_perf.sched.total_active_threads);
                         default:;
                         endcase
                     end
